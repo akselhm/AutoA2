@@ -54,38 +54,10 @@ class MyGA2:
         return newpop
 
 
+    def BinaryToNumber(self, bi):
+        for i
 
-        """
-        theFittest = max(fitnessResults)
-        posFittest = fitnessResults.index(theFittest)
-        
-        sel_1 = currGeneration[posFittest]
-        # Setting best individual based on the current generation
-        self.bestIndividual = sel_1
-        #Remove the fittest from the current generation
-        currGeneration.remove(sel_1)
-        fitnessResults.remove(theFittest)
-        
-        #Find the second fittest
-        theFittest = max(fitnessResults)
-        posFittest = fitnessResults.index(theFittest)
-        
-        sel_2 = currGeneration[posFittest]
-        #Remove the second fittest from the current generation
-        currGeneration.remove(sel_2)
-        fitnessResults.remove(theFittest)
-        
-        #Find the third fittest
-        theFittest = max(fitnessResults)
-        posFittest = fitnessResults.index(theFittest)
-        
-        sel_3 = currGeneration[posFittest]
-        #Remove the third fittest from the current generation - optional, as we have found everything what we were looking for
-        currGeneration.remove(sel_3)
-        fitnessResults.remove(theFittest)
-        
-        return [(sel_1,sel_2),(sel_1,sel_3)] # An array of pairs for crossover
-        """
+
     # Mutation function example
     def mutate(self, population):
         # Problem specific.
@@ -96,49 +68,29 @@ class MyGA2:
         if check > probNoMutations:
             #Mutation happened - just selecting 1 random bit [1..20]
             theIndividual = random.randrange(0, len(self.data)-1, 1)
-            theBit = random.randrange(0, 4, 1)
+            theBit = random.randrange(0, 4, 1) #change 4 to 13 (5+4+4)
             #Get individual from the population
             ind = population[theIndividual]
-            #Flip the corresponding bit
-            if theBit == 0:
-                testBit = 16 & ind # ind = 10010 --> testBit = 10000 (16) / ind' = 01010 (10000 & 01010 = 00000 (0 in decimal))
-                if testBit==0:
-                    ind = 16 + ind # ind' = 11010 = 26 (decimal)
-                else:
-                    ind = ind - 16 # ind = 00010 = 2 (decimal)
+            #must transform to binary
+            bin_ind = bin(ind)
+            #access the right bit 
+            digit = (bin_ind & (1 << theBit)) >> theBit
 
-            elif theBit == 1:
-                testBit = 8 & ind
-                if testBit==0:
-                    ind = 8 + ind
-                else:
-                    ind = ind - 8
-                
-            elif theBit == 2:
-                testBit = 4 & ind
-                if testBit==0:
-                    ind = 4 + ind
-                else:
-                    ind = ind - 4
-           
-            elif theBit == 3:
-                testBit = 2 & ind
-                if testBit==0:
-                    ind = 2 + ind
-                else:
-                    ind = ind - 2
-                
-            else:
-                testBit = 1 & ind
-                if testBit==0:
-                    ind = 1 + ind
-                else:
-                    ind = ind - 1
-            
-            fitNew = self.fitness(ind, population)
-            fitCurr = self.fitness(population[theIndividual], population)
+            change = bin(2^(len(self.data) - 1 - theBit)) # ether 1, 10, 100, 1000, ...
+            if digit == 0:
+                #turn 0 to 1
+                bin_mut = bin_ind + change
+            else: 
+                #turn 1 to 0
+                bin_mut = bin_ind - change
+            #transform to decimal
+            mutated = int(bin_mut)
+
+            #check if mutated is better fitted
+            fitNew = self.fitness(mutated, population)
+            fitCurr = self.fitness(ind, population)
             if(fitNew > fitCurr):
-                population[theIndividual] = ind
+                population[theIndividual] = mutated
 				
         return
     
