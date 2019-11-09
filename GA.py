@@ -3,14 +3,19 @@ import numpy as np
 
 class MyGA2:
     
-    def __init__(self, popsize, generations, data, mutProb):
+    def __init__(self, popsize, generations, mutProb):
         self.popsize = popsize # Could be needed for random population generation
         self.generations = generations # Amount of generations to go / a stoping criterion in this case.
-        self.data = data # Original data and current generation are intialized
-        self.currGeneration = data
+        #self.data = data # Original data and current generation are intialized
+        #self.currGeneration = data
         self.bestIndividual = None # TBD as a result of GA execution
         self.mutProb = mutProb
         
+        self.data = [] 
+        for i in range(0, self.popsize-1):
+            self.data.append(random.randint(1,16))
+        self.currGeneration = self.data
+
     def crossover(self, parent_1, parent_2):
         # Define crossover "masks" - it is problem specific, depends on the string length.
         # For example, for 5 bits-long string, for "after 3rd bit" crossover position the masks will be 11100 (28 decimal) and 00011 (3 decimal)
@@ -35,15 +40,15 @@ class MyGA2:
         # Problem specific. In this case - 2 pairs, the fittest - in both pairs and then the two next best ones - for one time.
         # Get position of the fittest
 
-        selprobs = np.zeros(popsize)
+        selprobs = np.zeros(self.popsize)
         currprob = 0
-        for individual in range(0,popsize-1):
+        for individual in range(0,self.popsize-1):
             #creating the cumulative probability for selection of each individual
             currprob += self.fitness(individual, currGeneration)
             selprobs[individual] = currprob 
         
         newpop = currGeneration.copy()
-        for i in range(0,popsize-1):
+        for i in range(0,self.popsize-1):
             # generates a new population from selected individuals
             r = random.random()     #float from 0 to 1
             selected = 0
@@ -52,10 +57,6 @@ class MyGA2:
             newpop[i] = currGeneration[selected]
 
         return newpop
-
-
-    def BinaryToNumber(self, bi):
-        for i
 
 
     # Mutation function example
@@ -71,20 +72,23 @@ class MyGA2:
             theBit = random.randrange(0, 4, 1) #change 4 to 13 (5+4+4)
             #Get individual from the population
             ind = population[theIndividual]
-            #must transform to binary
-            bin_ind = bin(ind)
+            #must transform to binary with right amount of bits
+            bin_ind = format(ind, '#06b')   #the bin represented as a string on the form '0b****'
             #access the right bit 
-            digit = (bin_ind & (1 << theBit)) >> theBit
+            digit = bin_ind[theBit +2]
 
-            change = bin(2^(len(self.data) - 1 - theBit)) # ether 1, 10, 100, 1000, ...
+            listbi = list(bin_ind)
+
+            #change = bin(2^(len(self.data) - 1 - theBit)) # ether 1, 10, 100, 1000, ...
             if digit == 0:
                 #turn 0 to 1
-                bin_mut = bin_ind + change
+                listbi[theBit +2] ='1'
+                bin_mut = ''.join(listbi)
             else: 
                 #turn 1 to 0
                 bin_mut = bin_ind - change
             #transform to decimal
-            mutated = int(bin_mut)
+            mutated = int(bin_mut[2:], 2)
 
             #check if mutated is better fitted
             fitNew = self.fitness(mutated, population)
@@ -127,18 +131,19 @@ class MyGA2:
 
 
 # Test the class
-data = [] 
+"""data = [] 
 for i in range 20:
-    data.append(random.randint(1,16))
-myga = MyGA2(4, 5, data, 0.05)
-print("Fitness test", myga.fitness(13, data)) # See slide 30 - http://lobov.biz/academia/kbe/191023
+    data.append(random.randint(1,16))"""
+myga = MyGA2(5, 5, 0.05)
+#print("Fitness test", myga.fitness(13, )) # See slide 30 - http://lobov.biz/academia/kbe/191023
 print("Crossover test", myga.crossover(13, 24)[0]) # See slides 33 and 34 - http://lobov.biz/academia/kbe/191023
 
 # Some useful operations
-print("Random selection test", random.choice(data))
-print("Max test", max(data))
-print("Index of the element", data.index(19))
-print("(1 - 0.05) in power 20", 0.95**20) 
+print("data", myga.data)
+print("Random selection test", random.choice(myga.data))
+print("Max test", max(myga.data))
+#print("Index of the element", myga.data.index(19))
+#print("(1 - 0.05) in power 20", 0.95**20) 
 
 myga.run()
 print("Best individual:", myga.bestIndividual)
