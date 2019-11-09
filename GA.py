@@ -33,18 +33,18 @@ class MyGA2:
         # Sum up all the functions
         sum = 0
         for x in currGeneration:
-            sum += x*x
-        return individual*individual/sum
+            sum += x
+        return individual/sum
     
-    def selection(self, currGeneration, fitnessResults):
+    def selection(self, currGeneration):    #selection as defined in lecture slides
         # Problem specific. In this case - 2 pairs, the fittest - in both pairs and then the two next best ones - for one time.
         # Get position of the fittest
 
-        selprobs = np.zeros(self.popsize)
+        selprobs = np.zeros(self.popsize-1)
         currprob = 0
         for individual in range(0,self.popsize-1):
             #creating the cumulative probability for selection of each individual
-            currprob += self.fitness(individual, currGeneration)
+            currprob += self.fitness(currGeneration[individual], currGeneration)
             selprobs[individual] = currprob 
         
         newpop = currGeneration.copy()
@@ -53,7 +53,7 @@ class MyGA2:
             r = random.random()     #float from 0 to 1
             selected = 0
             while r > selprobs[selected]:
-                individual +=1
+                selected +=1
             newpop[i] = currGeneration[selected]
 
         return newpop
@@ -76,19 +76,18 @@ class MyGA2:
             bin_ind = format(ind, '#06b')   #the bin represented as a string on the form '0b****'
             #access the right bit 
             digit = bin_ind[theBit +2]
-
+            #represent the binary number as a list of characters 
             listbi = list(bin_ind)
 
-            #change = bin(2^(len(self.data) - 1 - theBit)) # ether 1, 10, 100, 1000, ...
             if digit == 0:
                 #turn 0 to 1
                 listbi[theBit +2] ='1'
-                bin_mut = ''.join(listbi)
             else: 
                 #turn 1 to 0
-                bin_mut = bin_ind - change
+                listbi[theBit +2] ='0'
             #transform to decimal
-            mutated = int(bin_mut[2:], 2)
+            bin_mut = ''.join(listbi)   #binary list to binary string
+            mutated = int(bin_mut[2:], 2)  #binary string to decimal 
 
             #check if mutated is better fitted
             fitNew = self.fitness(mutated, population)
