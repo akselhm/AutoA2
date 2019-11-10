@@ -24,25 +24,28 @@ class MyGA2:
         # For example, for 5 bits-long string, for "after 3rd bit" crossover position the masks will be 11100 (28 decimal) and 00011 (3 decimal)
         mask_head = 28
         mask_tail = 3
+        child_1 = []
+        child_2 = []
         # Making the crossover
-        child_1 = (parent_1 & mask_head) + (parent_2 & mask_tail) # head of parent 1, tail of parent 2
-        child_2 = (parent_2 & mask_head) + (parent_1 & mask_tail) # head of parent 2, tail of parent 1
+        for i in range(0,3):
+            child_1.append((parent_1[i] & mask_head) + (parent_2[i] & mask_tail)) # head of parent 1, tail of parent 2
+            child_2.append((parent_2[i] & mask_head) + (parent_1[i] & mask_tail)) # head of parent 2, tail of parent 1
         return child_1, child_2
         
         
-def fitness(individual, currGeneration): #change this later to prob. specific
-    # Calculate fitness score of the individual w.r.t. the current generation
-    # Problem specific - sum x[i].
-    # Sum up all the functions
-    ind_score = 0
-    for part in individual:
-        ind_score += part
-    sum = 0
-    for x in range(0, len(currGeneration)):
-        for part in currGeneration[x]:
-            sum += part
-    return ind_score/sum
-    
+    def fitness(individual, currGeneration): #change this later to prob. specific
+        # Calculate fitness score of the individual w.r.t. the current generation
+        # Problem specific - sum x[i].
+        # Sum up all the functions
+        ind_score = 0
+        for part in individual:
+            ind_score += part
+        sum = 0
+        for x in range(0, len(currGeneration)):
+            for part in currGeneration[x]:
+                sum += part
+        return ind_score/sum
+        
     def selection(self, currGeneration):    #selection as defined in lecture slides
         # Problem specific. In this case - 2 pairs, the fittest - in both pairs and then the two next best ones - for one time.
         # Get position of the fittest
@@ -134,6 +137,7 @@ def fitness(individual, currGeneration): #change this later to prob. specific
             
             # Clearing fitnessResults
             fitnessResults.clear()
+            print(nextGeneration) #see result for each generation
         
         # By this time, after the loop execution, the best individual was set via the selection function inside the loops.
         return    
