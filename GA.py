@@ -12,7 +12,7 @@ class MyGA2:
         self.mutProb = mutProb
         
         self.data = [] 
-        for i in range(0, self.popsize-1):
+        for i in range(0, self.popsize):
             arm = []
             for part in range(0,3):
                 arm.append(random.randint(1,16)) 
@@ -33,7 +33,7 @@ class MyGA2:
         return child_1, child_2
         
         
-    def fitness(individual, currGeneration): #change this later to prob. specific
+    def fitness(self, individual, currGeneration): #change this later to prob. specific
         # Calculate fitness score of the individual w.r.t. the current generation
         # Problem specific - sum x[i].
         # Sum up all the functions
@@ -50,15 +50,15 @@ class MyGA2:
         # Problem specific. In this case - 2 pairs, the fittest - in both pairs and then the two next best ones - for one time.
         # Get position of the fittest
 
-        selprobs = np.zeros(self.popsize-1)
+        selprobs = []
         currprob = 0
-        for individual in range(0,self.popsize-1):
+        for individual in range(0,self.popsize):
             #creating the cumulative probability for selection of each individual
             currprob += self.fitness(currGeneration[individual], currGeneration)
-            selprobs[individual] = currprob 
+            selprobs.append(currprob) 
         
         newpop = currGeneration.copy()
-        for i in range(0,self.popsize-1):
+        for i in range(0,self.popsize):
             # generates a new population from selected individuals
             r = random.random()     #float from 0 to 1
             selected = 0
@@ -77,14 +77,14 @@ class MyGA2:
         check = random.random() # Returns a random number in [0, 1]
         if check > probNoMutations:
             #Mutation happened - just selecting 1 random bit [1..20]
-            theIndividual = random.randrange(0, len(self.data)-1, 1)
+            theIndividual = random.randrange(0, self.popsize, 1)
             part = random.randrange(0,3)
             theBit = random.randrange(0, 4, 1) #change 4 to 13 (5+4+4)
             #Get individual from the population
             ind = population[theIndividual]
             indpart = ind[part]
             #must transform to binary with right amount of bits
-            bin_ind = format(ind, '#06b')   #the bin represented as a string on the form '0b****'
+            bin_ind = format(indpart, '#06b')   #the bin represented as a string on the form '0b****'
             #access the right bit 
             digit = bin_ind[theBit +2]
             #represent the binary number as a list of characters 
@@ -119,25 +119,27 @@ class MyGA2:
             currGeneration = nextGeneration.copy() # Important to copy to create a new instance of the array object
             nextGeneration.clear()
             # Fitness evaluation for the current generation
+            
             for individual in currGeneration:
                 fitnessResults.append(self.fitness(individual, currGeneration))
             
             # Select the fittest parents for crossover
-            selection = self.selection(currGeneration, fitnessResults)
-            
+            selection = self.selection(currGeneration)
+            nextGeneration = selection.copy()
             # Make the crossover
-            for pair in selection:
-                child1, child2 = self.crossover(pair[0],pair[1]) # Taking two selected parents to generate two children (just one of the ways to do it).
-                nextGeneration.append(child1) # Appending children to the next generation variable.
-                nextGeneration.append(child1)
+            for i in range(0, (self.popsize-1)//2, 2):
+                child1, child2 = self.crossover(selection[i],selection[i+1]) # Taking two selected parents to generate two children (just one of the ways to do it).
+                nextGeneration[i] = child1 # Appending children to the next generation variable.
+                nextGeneration[i] = child2
             
             # Mutation check before next iteration
             self.mutate(nextGeneration)
             
-            
+            print(nextGeneration) #see result for each generation
+            print('bestFitnessScore: ', max(fitnessResults), ' on index ', fitnessResults.index(max(fitnessResults)))
+            print('best arm: ', nextGeneration[fitnessResults.index(max(fitnessResults))])
             # Clearing fitnessResults
             fitnessResults.clear()
-            print(nextGeneration) #see result for each generation
         
         # By this time, after the loop execution, the best individual was set via the selection function inside the loops.
         return    
@@ -147,16 +149,16 @@ class MyGA2:
 """data = [] 
 for i in range 20:
     data.append(random.randint(1,16))"""
-myga = MyGA2(5, 5, 0.05)
+myga = MyGA2(8, 10, 0.05)
 #print("Fitness test", myga.fitness(13, )) # See slide 30 - http://lobov.biz/academia/kbe/191023
-print("Crossover test", myga.crossover(13, 24)[0]) # See slides 33 and 34 - http://lobov.biz/academia/kbe/191023
+#print("Crossover test", myga.crossover(13, 24)[0]) # See slides 33 and 34 - http://lobov.biz/academia/kbe/191023
 
 # Some useful operations
 print("data", myga.data)
 print("Random selection test", random.choice(myga.data))
-print("Max test", max(myga.data))
+#print("Max test", max(myga.data))
 #print("Index of the element", myga.data.index(19))
 #print("(1 - 0.05) in power 20", 0.95**20) 
 
 myga.run()
-print("Best individual:", myga.bestIndividual)
+#print("Best individual:", myga.bestIndividual)
