@@ -13,7 +13,10 @@ class MyGA2:
         
         self.data = [] 
         for i in range(0, self.popsize-1):
-            self.data.append(random.randint(1,16))
+            arm = []
+            for part in range(0,3):
+                arm.append(random.randint(1,16)) 
+            self.data.append(arm) 
         self.currGeneration = self.data
 
     def crossover(self, parent_1, parent_2):
@@ -27,14 +30,18 @@ class MyGA2:
         return child_1, child_2
         
         
-    def fitness(self, individual, currGeneration):
-        # Calculate fitness score of the individual w.r.t. the current generation
-        # Problem specific - x*x.
-        # Sum up all the functions
-        sum = 0
-        for x in currGeneration:
-            sum += x
-        return individual/sum
+def fitness(individual, currGeneration): #change this later to prob. specific
+    # Calculate fitness score of the individual w.r.t. the current generation
+    # Problem specific - sum x[i].
+    # Sum up all the functions
+    ind_score = 0
+    for part in individual:
+        ind_score += part
+    sum = 0
+    for x in range(0, len(currGeneration)):
+        for part in currGeneration[x]:
+            sum += part
+    return ind_score/sum
     
     def selection(self, currGeneration):    #selection as defined in lecture slides
         # Problem specific. In this case - 2 pairs, the fittest - in both pairs and then the two next best ones - for one time.
@@ -61,17 +68,18 @@ class MyGA2:
 
     # Mutation function example
     def mutate(self, population):
-        # Problem specific.
-        # There are 20 individuals in the population. Each is 4-bits-long binary string. So, in total, there are 800 bits.
-        probNoMutations = (1-self.mutProb)**800 # Case specific '800'
+        # There are popsize # of individuals in the population. Each consist of three 4-bits-long binary string
+        probNoMutations = (1-self.mutProb)**(self.popsize*4*3) 
         #Check if at least one bit mutation happened
         check = random.random() # Returns a random number in [0, 1]
         if check > probNoMutations:
             #Mutation happened - just selecting 1 random bit [1..20]
             theIndividual = random.randrange(0, len(self.data)-1, 1)
+            part = random.randrange(0,3)
             theBit = random.randrange(0, 4, 1) #change 4 to 13 (5+4+4)
             #Get individual from the population
             ind = population[theIndividual]
+            indpart = ind[part]
             #must transform to binary with right amount of bits
             bin_ind = format(ind, '#06b')   #the bin represented as a string on the form '0b****'
             #access the right bit 
@@ -79,7 +87,7 @@ class MyGA2:
             #represent the binary number as a list of characters 
             listbi = list(bin_ind)
 
-            if digit == 0:
+            if digit == '0':
                 #turn 0 to 1
                 listbi[theBit +2] ='1'
             else: 
@@ -87,7 +95,9 @@ class MyGA2:
                 listbi[theBit +2] ='0'
             #transform to decimal
             bin_mut = ''.join(listbi)   #binary list to binary string
-            mutated = int(bin_mut[2:], 2)  #binary string to decimal 
+            mutpart = int(bin_mut[2:], 2)  #binary string to decimal
+            mutated = ind
+            mutated[part] = mutpart
 
             #check if mutated is better fitted
             fitNew = self.fitness(mutated, population)
