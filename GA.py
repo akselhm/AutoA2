@@ -3,19 +3,20 @@ import numpy as np
 
 class MyGA2:
     
-    def __init__(self, popsize, generations, mutProb):
+    def __init__(self, popsize, generations, mutProb, radius):
         self.popsize = popsize # Could be needed for random population generation
         self.generations = generations # Amount of generations to go / a stoping criterion in this case.
         #self.data = data # Original data and current generation are intialized
         #self.currGeneration = data
         self.bestIndividual = None # TBD as a result of GA execution
         self.mutProb = mutProb
+        self.radius = radius # The Specified radius that we want to reach with our RRR open-chain
         
         self.data = [] 
         for i in range(0, self.popsize):
             arm = []
             for part in range(0,3):
-                arm.append(random.randint(1,16)) 
+                arm.append(random.randint(1,31)) 
             self.data.append(arm) 
         self.currGeneration = self.data
 
@@ -35,15 +36,12 @@ class MyGA2:
         
     def fitness(self, individual, currGeneration): #change this later to prob. specific
         # Calculate fitness score of the individual w.r.t. the current generation
-        # Problem specific - sum x[i].
+        # Problem specific: .
         # Sum up all the functions
-        ind_score = 0
-        for part in individual:
-            ind_score += part
+        ind_score = 1/(5*(individual[1] + individual[2] - self.radius)**2 + (self.radius - individual[0])**2 + 2*(individual[1] - individual[2])**2 + 0.01234)
         sum = 0
         for x in range(0, len(currGeneration)):
-            for part in currGeneration[x]:
-                sum += part
+            sum += 1/(5*(currGeneration[x][1] + currGeneration[x][2] - self.radius)**2 + (self.radius - currGeneration[x][0])**2 + 2*(currGeneration[x][1] - currGeneration[x][2])**2 + 0.01234)
         return ind_score/sum
         
     def selection(self, currGeneration):    #selection as defined in lecture slides
@@ -72,19 +70,19 @@ class MyGA2:
     # Mutation function example
     def mutate(self, population):
         # There are popsize # of individuals in the population. Each consist of three 4-bits-long binary string
-        probNoMutations = (1-self.mutProb)**(self.popsize*4*3) 
+        probNoMutations = (1-self.mutProb)**(self.popsize*5*3) 
         #Check if at least one bit mutation happened
         check = random.random() # Returns a random number in [0, 1]
         if check > probNoMutations:
             #Mutation happened - just selecting 1 random bit [1..20]
             theIndividual = random.randrange(0, self.popsize, 1)
             part = random.randrange(0,3)
-            theBit = random.randrange(0, 4, 1) #change 4 to 13 (5+4+4)
+            theBit = random.randrange(0, 5, 1) 
             #Get individual from the population
             ind = population[theIndividual]
             indpart = ind[part]
             #must transform to binary with right amount of bits
-            bin_ind = format(indpart, '#06b')   #the bin represented as a string on the form '0b****'
+            bin_ind = format(indpart, '#07b')   #the bin represented as a string on the form '0b*****'
             #access the right bit 
             digit = bin_ind[theBit +2]
             #represent the binary number as a list of characters 
@@ -127,16 +125,16 @@ class MyGA2:
             selection = self.selection(currGeneration)
             nextGeneration = selection.copy()
             # Make the crossover
-            for i in range(0, (self.popsize-1)//2, 2):
+            for i in range(0, (self.popsize)//4, 2):       # Croosover on half of the population
                 child1, child2 = self.crossover(selection[i],selection[i+1]) # Taking two selected parents to generate two children (just one of the ways to do it).
                 nextGeneration[i] = child1 # Appending children to the next generation variable.
-                nextGeneration[i] = child2
+                nextGeneration[i+1] = child2
             
             # Mutation check before next iteration
             self.mutate(nextGeneration)
             
-            print(nextGeneration) #see result for each generation
-            print('bestFitnessScore: ', max(fitnessResults), ' on index ', fitnessResults.index(max(fitnessResults)))
+            #print(nextGeneration) #see result for each generation
+            #print('bestFitnessScore: ', max(fitnessResults), ' on index ', fitnessResults.index(max(fitnessResults)))
             print('best arm: ', nextGeneration[fitnessResults.index(max(fitnessResults))])
             # Clearing fitnessResults
             fitnessResults.clear()
@@ -149,16 +147,13 @@ class MyGA2:
 """data = [] 
 for i in range 20:
     data.append(random.randint(1,16))"""
-myga = MyGA2(8, 10, 0.05)
+myga = MyGA2(15, 15, 0.05, 27)
 #print("Fitness test", myga.fitness(13, )) # See slide 30 - http://lobov.biz/academia/kbe/191023
 #print("Crossover test", myga.crossover(13, 24)[0]) # See slides 33 and 34 - http://lobov.biz/academia/kbe/191023
 
 # Some useful operations
 print("data", myga.data)
-print("Random selection test", random.choice(myga.data))
-#print("Max test", max(myga.data))
-#print("Index of the element", myga.data.index(19))
-#print("(1 - 0.05) in power 20", 0.95**20) 
+#print("Random selection test", random.choice(myga.data)) 
 
 myga.run()
 #print("Best individual:", myga.bestIndividual)
